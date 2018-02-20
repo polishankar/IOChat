@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+  body{
+    margin-top:40px;
+  }
+  #messageArea{
+    display: none;
+  }
+  </style>
+  </style>
+
+</head>
+
+<body>
+  <div class="container">
+    <div id="inputFormArea" class="row">
+      <div class="col-md-12">
+        <form id="inputForm">
+          <div class="form-group">
+            <label>Inbound Value</label>
+            <input class="form-control" id="inputtype" />
+            <br />
+            <input type ="submit" class="btn btn-primary" value="login" />
+         </div>
+       </form>
+      </div>
+    </div>
+     <div id="messageArea" class="row">
+       <div class="col-md-4">
+         <div class="well">
+         <h3>Inbound Display</h3>
+         <ul class="list-group" id="inputs"></ul>
+       </div>
+     </div>
+       <div class="col-md-8">
+         <div class="chat" id="chat"></div>
+          <form id="messageForm" action="/myform" method="GET">
+           <div class="form-group">
+             <label>Enter Outbound Value</label>
+             <textarea class="form-control" id="message" name="mytext"></textarea>
+             <br />
+             <input type ="submit" class="btn btn-primary" value="Send Value" />
+          </div>
+        </form>
+       </div>
+
+     </div>
+</div>
+<script type="text/javascript">
+$(function(){
+  var socket = io.connect();
+  var $messageForm = $('#messageForm');
+  var $message = $('#message');
+  var $chat = $('#chat');
+  var $messageArea = $('#messageArea');
+  var $inputFormArea = $('#inputFormArea');
+  var $inputForm = $('#inputForm');
+  var $inputs = $('#inputs');
+  var $inputtype = $('#inputtype');
+
+  $messageForm.submit(function(e){
+    e.preventDefault();
+    $.ajax({
+       url: "/outbound",
+      data: { value: $message.val() },
+      method: "GET",
+     success: (data) => {
+         //$inputs.html(data);
+
+    }
+});
+    socket.emit('send message', $message.val());
+    $message.val('');
+
+    });
+    socket.on('messages', function(yyy) {
+              
+        });
+    socket.on('new message', function(data){
+      $chat.append('<div class="well">'+data.msg+'</div>');
+
+      });
+      $inputForm.submit(function(e){
+        e.preventDefault();
+        socket.emit('new input', $inputtype.val(), function(data){
+            console.log(data);
+            if(data){
+            $inputFormArea.hide();
+            $messageArea.show();
+          }
+          });
+        $inputtype.val('');
+        });
+
+        socket.on('get inputs', function(data){
+          console.log("kkk");
+          var html = data;
+
+          console.log(html);
+          $inputs.html(html);
+          });
+  });
+</script>
+</body>
+</html>
